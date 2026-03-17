@@ -364,7 +364,7 @@
             <div class="pt-field-date" style="position:relative;">
                 <label for="date">ތާރީޙް</label>
                 <div class="date-display" id="dateDisplay" onclick="document.getElementById('date').showPicker()">
-                    📅 {{ $selectedDate->format('j M Y') }}
+                    📅 {{ $selectedDate->format('d/m/Y') }}
                 </div>
                 <input type="date" name="date" id="date"
                        value="{{ $selectedDate->toDateString() }}"
@@ -392,7 +392,7 @@
                 <span style="font-size:.85em;font-weight:400;color:var(--clr-muted);font-family:var(--font-latin);margin-inline-start:.4rem">({{ $selectedIsland->name_latin }})</span>
             @endif
         </div>
-        <div class="pt-greg">{{ $selectedDate->format('jS F Y') }}</div>
+        <div class="pt-greg">{{ $selectedDate->format('d/m/Y') }}</div>
         <div class="pt-hijri" id="hijriDate">ލޯޑު ވަނީ...</div>
         <div class="pt-maldives-clock" id="maldivesClock">––:––:–– </div>
     </div>
@@ -532,9 +532,10 @@
     document.getElementById('date').addEventListener('change', function () {
         const d = new Date(this.value + 'T00:00:00');
         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        const day = d.getDate();
-        const suffix = [,'st','nd','rd'][day] || 'th';
-        document.getElementById('dateDisplay').textContent = '📅 ' + day + suffix + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+        const day   = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year  = d.getFullYear();
+        document.getElementById('dateDisplay').textContent = '📅 ' + day + '/' + month + '/' + year;
         document.getElementById('ptForm').submit();
     });
 
