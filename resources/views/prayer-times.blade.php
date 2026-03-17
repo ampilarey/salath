@@ -365,7 +365,7 @@
             <div class="pt-field-date" style="position:relative;">
                 <label for="date">ތާރީޙް</label>
                 <div class="date-display" id="dateDisplay" onclick="document.getElementById('date').showPicker()">
-                    📅 {{ $selectedDate->format('jS F Y') }}
+                    📅 {{ $selectedDate->format('jS M Y') }}
                 </div>
                 <input type="date" name="date" id="date"
                        value="{{ $selectedDate->toDateString() }}"
@@ -393,7 +393,7 @@
                 <span style="font-size:.85em;font-weight:400;color:var(--clr-muted);font-family:var(--font-latin);margin-inline-start:.4rem">({{ $selectedIsland->name_latin }})</span>
             @endif
         </div>
-        <div class="pt-greg">{{ $selectedDate->format('jS F Y') }}</div>
+        <div class="pt-greg">{{ $selectedDate->format('jS M Y') }}</div>
         <div class="pt-hijri" id="hijriDate">ލޯޑު ވަނީ...</div>
         <div class="pt-maldives-clock" id="maldivesClock">––:––:–– </div>
     </div>
@@ -532,7 +532,7 @@
     /* ─────────────── Date picker ─────────────── */
     document.getElementById('date').addEventListener('change', function () {
         const d = new Date(this.value + 'T00:00:00');
-        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         const day    = d.getDate();
         const suffix = day % 10 === 1 && day !== 11 ? 'st' : day % 10 === 2 && day !== 12 ? 'nd' : day % 10 === 3 && day !== 13 ? 'rd' : 'th';
         document.getElementById('dateDisplay').textContent = '📅 ' + day + suffix + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
