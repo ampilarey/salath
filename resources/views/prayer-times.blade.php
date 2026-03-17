@@ -234,12 +234,13 @@
     justify-content: space-between;
     gap: .5rem;
     transition: border-color .2s;
+    direction: rtl;
     text-align: right;
 }
 .isl-trigger:hover, .isl-trigger.open { border-color: var(--clr-primary); }
 .isl-trigger-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .isl-trigger-latin { font-family: var(--font-latin); font-size: .8rem; color: var(--clr-muted); white-space: nowrap; }
-.isl-arrow { font-size: .7rem; color: var(--clr-muted); transition: transform .2s; flex-shrink: 0; }
+.isl-arrow { font-size: .7rem; color: var(--clr-muted); transition: transform .2s; flex-shrink: 0; margin-inline-end: auto; }
 .isl-trigger.open .isl-arrow { transform: rotate(180deg); }
 .isl-panel {
     position: absolute;
