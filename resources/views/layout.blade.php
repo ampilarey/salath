@@ -9,9 +9,7 @@
     <style>
         @font-face {
             font-family: 'A_Faruma';
-            src: url('/fonts/A_Faruma.woff2') format('woff2'),
-                 url('/fonts/A_Faruma.woff') format('woff'),
-                 url('/fonts/A_Faruma.ttf') format('truetype');
+            src: url('/fonts/a_faruma.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
             font-display: swap;
