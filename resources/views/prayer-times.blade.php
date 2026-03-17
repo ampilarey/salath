@@ -348,9 +348,12 @@
     if (!PRAYERS_RAW || Object.keys(PRAYERS_RAW).length === 0) return;
 
     const PRAYER_NAMES_DV = {
-        fajr: 'ފަތިސް', sunrise: 'އިރު އެރުން', dhuhr: 'މެންދުރު',
+        fajr: 'ފަތިސް', dhuhr: 'މެންދުރު',
         asr: 'އަޞްރު', maghrib: 'މަޣްރިބް', isha: 'ޢިޝާ'
     };
+
+    // Prayers to skip in countdown (sunrise is not a prayer)
+    const SKIP_COUNTDOWN = ['sunrise'];
 
     function parseHHMM(s) {
         const [h, m] = s.split(':').map(Number);
@@ -362,6 +365,7 @@
         const nowMin = now.getHours() * 60 + now.getMinutes();
         const entries = Object.entries(PRAYERS_RAW);
         for (const [key, time] of entries) {
+            if (SKIP_COUNTDOWN.includes(key)) continue;
             if (parseHHMM(time) > nowMin) return { key, time };
         }
         return null; // all prayers done today
