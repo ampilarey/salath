@@ -936,11 +936,38 @@
                     document.getElementById('heroAfter').textContent = '';
                 }
             } else {
-                if (heroBox) heroBox.style.opacity = '.55';
-                document.getElementById('heroName').textContent     = 'ތިން ދަމު ދިޔަ';
-                document.getElementById('heroTime').textContent      = 'All prayers completed for today';
-                document.getElementById('heroCountdown').textContent = '––:––:––';
-                document.getElementById('heroAfter').textContent     = '';
+                // Fetch tomorrow's Fajr once and cache it
+                if (!window._tomorrowFajrFetched) {
+                    window._tomorrowFajrFetched = true;
+                    const islandId = {{ $viewModel->selectedIsland?->id ?? 'null' }};
+                    if (islandId) {
+                        const tmrw = new Date();
+                        tmrw.setDate(tmrw.getDate() + 1);
+                        const tmrwStr = tmrw.toISOString().slice(0, 10);
+                        fetch('/api/prayer-times?island_id=' + islandId + '&date=' + tmrwStr)
+                            .then(r => r.json())
+                            .then(data => { window._tomorrowFajrTime = data?.prayers?.fajr ?? null; })
+                            .catch(() => {});
+                    }
+                }
+
+                if (window._tomorrowFajrTime) {
+                    if (heroBox) heroBox.style.opacity = '1';
+                    document.getElementById('heroName').textContent = PRAYER_NAMES_DV['fajr'];
+                    document.getElementById('heroTime').textContent = PRAYER_NAMES_EN['fajr'] + ' — ' + window._tomorrowFajrTime + ' · Tomorrow';
+                    const [fh, fm] = window._tomorrowFajrTime.split(':').map(Number);
+                    const target = new Date();
+                    target.setDate(target.getDate() + 1);
+                    target.setHours(fh, fm, 0, 0);
+                    document.getElementById('heroCountdown').textContent = formatCountdown(target - now);
+                    document.getElementById('heroAfter').textContent = '';
+                } else {
+                    if (heroBox) heroBox.style.opacity = '.55';
+                    document.getElementById('heroName').textContent     = 'ތިން ދަމު ދިޔަ';
+                    document.getElementById('heroTime').textContent      = 'All prayers completed for today';
+                    document.getElementById('heroCountdown').textContent = '––:––:––';
+                    document.getElementById('heroAfter').textContent     = '';
+                }
             }
         }
 
