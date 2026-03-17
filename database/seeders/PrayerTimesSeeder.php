@@ -19,6 +19,8 @@ class PrayerTimesSeeder extends Seeder
         $sqlite = new \PDO("sqlite:{$sqlitePath}");
         $sqlite->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
         $this->command->info('Seeding prayer_categories...');
         DB::table('prayer_categories')->truncate();
         $cats = $sqlite->query('SELECT Id FROM Category')->fetchAll(\PDO::FETCH_COLUMN);
@@ -79,5 +81,7 @@ class PrayerTimesSeeder extends Seeder
             $total += count($buffer);
         }
         $this->command->info("Inserted {$total} prayer time rows.");
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 }
