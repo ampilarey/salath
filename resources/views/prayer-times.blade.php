@@ -825,11 +825,11 @@
         if (!display) return;
 
         function tick() {
-            const mv  = new Date(new Date().toLocaleString('en-US', { timeZone: 'Indian/Maldives' }));
-            const h24 = mv.getHours();
+            const mv  = getMVT();
+            const h24 = mv.getUTCHours();
             const h12 = h24 % 12 || 12;
-            const m   = String(mv.getMinutes()).padStart(2, '0');
-            const s   = String(mv.getSeconds()).padStart(2, '0');
+            const m   = String(mv.getUTCMinutes()).padStart(2, '0');
+            const s   = String(mv.getUTCSeconds()).padStart(2, '0');
             const ap  = h24 >= 12 ? 'PM' : 'AM';
             display.innerHTML = String(h12).padStart(2, '0') + ':' + m + ':' + s +
                 ' <span class="pt-clock-ampm">' + ap + '</span>';
@@ -845,14 +845,16 @@
     ═══════════════════════════════════════════ */
 
     // All time comparisons must use Maldives time (Indian/Maldives = UTC+5, no DST).
+    // Using a fixed UTC+5 offset avoids relying on toLocaleString() parsing, which is
+    // unreliable across browsers. getUTC* methods on the returned Date give MVT values.
     function getMVT() {
-        return new Date(new Date().toLocaleString('en-US', { timeZone: 'Indian/Maldives' }));
+        return new Date(Date.now() + 5 * 3600 * 1000);
     }
     function mvtDateString() {
-        const mv = getMVT();
-        return mv.getFullYear() + '-' +
-            String(mv.getMonth() + 1).padStart(2, '0') + '-' +
-            String(mv.getDate()).padStart(2, '0');
+        const d = getMVT();
+        return d.getUTCFullYear() + '-' +
+            String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+            String(d.getUTCDate()).padStart(2, '0');
     }
 
     const IS_TODAY = '{{ $viewModel->selectedDate->toDateString() }}' === mvtDateString();
@@ -909,7 +911,7 @@
             // Always compute current time in MVT so comparisons are correct for
             // all visitors, regardless of their device's local timezone.
             const mvNow  = getMVT();
-            const nowMin = mvNow.getHours() * 60 + mvNow.getMinutes();
+            const nowMin = mvNow.getUTCHours() * 60 + mvNow.getUTCMinutes();
             const cards  = getCards();
 
             // Mark past / is-next — skip sunrise for the 'is-next' logic.
@@ -937,7 +939,7 @@
 
                 // Compute diff entirely in MVT minutes to avoid local-timezone setHours() errors.
                 const [nh, nm]  = next.time.split(':').map(Number);
-                const diffMs    = ((nh * 60 + nm) - nowMin) * 60_000 - mvNow.getSeconds() * 1_000;
+                const diffMs    = ((nh * 60 + nm) - nowMin) * 60000 - mvNow.getUTCSeconds() * 1000;
                 document.getElementById('heroCountdown').textContent = formatCountdown(diffMs);
 
                 const afterCard = findAfterNext(next.key);
@@ -956,10 +958,10 @@
                     const islandId = {{ $viewModel->selectedIsland?->id ?? 'null' }};
                     if (islandId) {
                         const tmrwMV  = getMVT();
-                        tmrwMV.setDate(tmrwMV.getDate() + 1);
-                        const tmrwStr = tmrwMV.getFullYear() + '-' +
-                            String(tmrwMV.getMonth() + 1).padStart(2, '0') + '-' +
-                            String(tmrwMV.getDate()).padStart(2, '0');
+                        tmrwMV.setUTCDate(tmrwMV.getUTCDate() + 1);
+                        const tmrwStr = tmrwMV.getUTCFullYear() + '-' +
+                            String(tmrwMV.getUTCMonth() + 1).padStart(2, '0') + '-' +
+                            String(tmrwMV.getUTCDate()).padStart(2, '0');
                         fetch('/api/prayer-times?island_id=' + islandId + '&date=' + tmrwStr)
                             .then(r => r.json())
                             .then(data => { window._tomorrowFajrTime = data?.prayers?.fajr ?? null; })
@@ -974,7 +976,7 @@
                     const [fh, fm] = window._tomorrowFajrTime.split(':').map(Number);
                     // Tomorrow's Fajr diff: minutes remaining in today + fajr minutes into tomorrow.
                     const minsToMidnight = (24 * 60) - nowMin;
-                    const diffMs = (minsToMidnight + fh * 60 + fm) * 60_000 - mvNow.getSeconds() * 1_000;
+                    const diffMs = (minsToMidnight + fh * 60 + fm) * 60000 - mvNow.getUTCSeconds() * 1000;
                     document.getElementById('heroCountdown').textContent = formatCountdown(diffMs);
                     document.getElementById('heroAfter').textContent = '';
                 } else {

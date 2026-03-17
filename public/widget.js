@@ -25,15 +25,16 @@
         }
     })();
 
-    /* All time comparisons must use Maldives time (UTC+5, no DST). */
+    /* All time comparisons must use Maldives time (UTC+5, no DST).
+     * Fixed offset avoids toLocaleString() parsing which is unreliable across browsers. */
     function getMVT() {
-        return new Date(new Date().toLocaleString('en-US', { timeZone: 'Indian/Maldives' }));
+        return new Date(Date.now() + 5 * 3600 * 1000);
     }
     function mvtDateString() {
-        const mv = getMVT();
-        return mv.getFullYear() + '-' +
-            String(mv.getMonth() + 1).padStart(2, '0') + '-' +
-            String(mv.getDate()).padStart(2, '0');
+        const d = getMVT();
+        return d.getUTCFullYear() + '-' +
+            String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+            String(d.getUTCDate()).padStart(2, '0');
     }
 
     /* ── CSS ── */
@@ -207,7 +208,7 @@
 
             // Use MVT so comparisons are correct for visitors outside Maldives.
             const mvNow  = getMVT();
-            const nowMin = mvNow.getHours() * 60 + mvNow.getMinutes();
+            const nowMin = mvNow.getUTCHours() * 60 + mvNow.getUTCMinutes();
 
             let nextKey  = null;
             let nextTime = null;
@@ -241,16 +242,16 @@
                 nnEl.textContent = PRAYER_META[nextKey][lang];
                 ntEl.textContent = nextTime;
                 const [nh, nm] = nextTime.split(':').map(Number);
-                const diffMs   = ((nh * 60 + nm) - nowMin) * 60_000 - mvNow.getSeconds() * 1_000;
+                const diffMs   = ((nh * 60 + nm) - nowMin) * 60000 - mvNow.getUTCSeconds() * 1000;
                 tmEl.textContent = formatCountdown(diffMs);
             } else {
                 // After Isha — fetch tomorrow's Fajr and count down to it.
                 if (!tomorrowFajr) {
                     const tmrwMV  = getMVT();
-                    tmrwMV.setDate(tmrwMV.getDate() + 1);
-                    const tmrwStr = tmrwMV.getFullYear() + '-' +
-                        String(tmrwMV.getMonth() + 1).padStart(2, '0') + '-' +
-                        String(tmrwMV.getDate()).padStart(2, '0');
+                    tmrwMV.setUTCDate(tmrwMV.getUTCDate() + 1);
+                    const tmrwStr = tmrwMV.getUTCFullYear() + '-' +
+                        String(tmrwMV.getUTCMonth() + 1).padStart(2, '0') + '-' +
+                        String(tmrwMV.getUTCDate()).padStart(2, '0');
                     fetch(apiBase + '/api/prayer-times?island_id=' + islandId + '&date=' + tmrwStr)
                         .then(r => r.json())
                         .then(data => { tomorrowFajr = data?.prayers?.fajr ?? null; })
@@ -262,7 +263,7 @@
                     ntEl.textContent = tomorrowFajr + ' · ' + (lang === 'dv' ? 'މާދަމާ' : 'Tomorrow');
                     const [fh, fm]       = tomorrowFajr.split(':').map(Number);
                     const minsToMidnight = (24 * 60) - nowMin;
-                    const diffMs         = (minsToMidnight + fh * 60 + fm) * 60_000 - mvNow.getSeconds() * 1_000;
+                    const diffMs         = (minsToMidnight + fh * 60 + fm) * 60000 - mvNow.getUTCSeconds() * 1000;
                     tmEl.textContent = formatCountdown(diffMs);
                 } else {
                     nnEl.textContent = lang === 'dv' ? 'ދެން ވަންނަ ނަމާދު ނެތް' : 'No more prayers today';
