@@ -87,7 +87,7 @@
     font-size: 2rem;
     font-weight: 700;
     color: var(--clr-text);
-    font-family: 'Inter', monospace;
+    font-family: var(--font-latin);
     letter-spacing: .06em;
     margin-top: .4rem;
 }
@@ -131,7 +131,7 @@
     font-size: 2rem;
     font-weight: 700;
     color: var(--clr-accent);
-    font-family: 'Inter', monospace;
+    font-family: var(--font-latin);
     letter-spacing: .04em;
 }
 
@@ -194,7 +194,7 @@
     font-size: 1.55rem;
     font-weight: 700;
     color: var(--clr-text);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-latin);
     letter-spacing: .02em;
 }
 .pt-card.is-next .pt-card-time { color: var(--clr-primary); }
@@ -261,7 +261,7 @@
         <div class="pt-island-name">
             {{ $selectedIsland?->name ?? '–' }}
             @if($selectedIsland?->name_latin)
-                <span style="font-size:.85em;font-weight:400;color:var(--clr-muted);font-family:'Inter',sans-serif;margin-inline-start:.4rem">({{ $selectedIsland->name_latin }})</span>
+                <span style="font-size:.85em;font-weight:400;color:var(--clr-muted);font-family:var(--font-latin);margin-inline-start:.4rem">({{ $selectedIsland->name_latin }})</span>
             @endif
         </div>
         <div class="pt-greg">{{ $selectedDate->translatedFormat('l, j F Y') }}</div>

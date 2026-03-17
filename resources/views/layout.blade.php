@@ -6,6 +6,9 @@
     <meta name="description" content="@yield('description', 'ދިވެހިރާއްޖޭގެ ހުރިހާ ރަށެއްގެ ނަމާދު ވަގުތު')">
     <title>@yield('title', 'ނަމާދު ވަގުތު – ދިވެހިރާއްޖެ')</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         @font-face {
             font-family: 'A_Faruma';
@@ -33,7 +36,7 @@
             --clr-next-bg:   rgba(56,189,248,.12);
             --radius:        14px;
             --radius-sm:     8px;
-            --font-latin:    'Inter', system-ui, sans-serif;
+            --font-latin:    'Lora', Georgia, serif;
             --font-dhivehi:  'A_Faruma', 'MV Faseyha', 'MV Waheed', serif;
         }
 
