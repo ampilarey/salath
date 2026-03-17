@@ -370,7 +370,7 @@
             const s = String(mv.getSeconds()).padStart(2, '0');
             const ampm = mv.getHours() >= 12 ? 'PM' : 'AM';
             document.getElementById('maldivesClock').innerHTML =
-                `<span>މޯލްޑިވްސް ގަޑި</span>${h}:${m}:${s} <small style="font-size:.8rem;color:var(--clr-muted)">${ampm}</small>`;
+                `<span>ރާއްޖެ ގަޑި</span>${h}:${m}:${s} <small style="font-size:.8rem;color:var(--clr-muted)">${ampm}</small>`;
         }
         updateClock();
         setInterval(updateClock, 1000);
