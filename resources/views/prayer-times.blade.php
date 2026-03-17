@@ -857,7 +857,9 @@
             String(d.getUTCDate()).padStart(2, '0');
     }
 
-    const IS_TODAY = '{{ $viewModel->selectedDate->toDateString() }}' === mvtDateString();
+    // Let the server determine IS_TODAY — it knows whether selectedDate is today.
+    // Comparing server UTC date against client MVT date caused mismatches around midnight.
+    const IS_TODAY = {{ $viewModel->isToday() ? 'true' : 'false' }};
 
     @if($viewModel->prayers)
     (function initCountdown() {
