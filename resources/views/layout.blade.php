@@ -8,7 +8,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         @font-face {
             font-family: 'A_Faruma';
@@ -36,7 +36,7 @@
             --clr-next-bg:   rgba(56,189,248,.12);
             --radius:        14px;
             --radius-sm:     8px;
-            --font-latin:    'Libre Baskerville', Georgia, serif;
+            --font-latin:    'Roboto', sans-serif;
             --font-dhivehi:  'A_Faruma', 'MV Faseyha', 'MV Waheed', serif;
         }
 
