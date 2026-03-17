@@ -6,9 +6,17 @@
     <meta name="description" content="@yield('description', 'ދިވެހިރާއްޖޭގެ ހުރިހާ ރަށެއްގެ ނަމާދު ވަގުތު')">
     <title>@yield('title', 'ނަމާދު ވަގުތު – ދިވެހިރާއްޖެ')</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=MV+Faseyha&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'A_Faruma';
+            src: url('/fonts/A_Faruma.woff2') format('woff2'),
+                 url('/fonts/A_Faruma.woff') format('woff'),
+                 url('/fonts/A_Faruma.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+    </style>
 
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,7 +36,7 @@
             --radius:        14px;
             --radius-sm:     8px;
             --font-latin:    'Inter', system-ui, sans-serif;
-            --font-dhivehi:  'MV Faseyha', 'MV Waheed', serif;
+            --font-dhivehi:  'A_Faruma', 'MV Faseyha', 'MV Waheed', serif;
         }
 
         html { font-size: 16px; scroll-behavior: smooth; }
