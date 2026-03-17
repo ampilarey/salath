@@ -16,7 +16,7 @@
     'use strict';
 
     const CSS = `
-.sw-wrap{font-family:'MV Faseyha','MV Waheed',serif;direction:rtl;box-sizing:border-box}
+.sw-wrap{font-family:'A_Faruma','MV Faseyha','MV Waheed',serif;direction:rtl;box-sizing:border-box}
 .sw-wrap *{box-sizing:border-box}
 .sw-wrap.sw-dark{--bg:#1e293b;--bg2:#263347;--border:#334155;--text:#f1f5f9;--muted:#94a3b8;--primary:#38bdf8;--accent:#f59e0b;--next-bg:rgba(56,189,248,.12)}
 .sw-wrap.sw-light{--bg:#ffffff;--bg2:#f1f5f9;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--primary:#0284c7;--accent:#d97706;--next-bg:rgba(2,132,199,.08)}
@@ -63,11 +63,10 @@
         style.id = 'sw-styles';
         style.textContent = CSS;
         document.head.appendChild(style);
-        // Load Maldivian font
-        const link = document.createElement('link');
-        link.rel  = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=MV+Faseyha&display=swap';
-        document.head.appendChild(link);
+        // Load A_Faruma font
+        const fontFace = document.createElement('style');
+        fontFace.textContent = "@font-face{font-family:'A_Faruma';src:url('https://salath.bakeandgrill.mv/fonts/a_faruma.ttf') format('truetype');font-display:swap;}";
+        document.head.appendChild(fontFace);
     }
 
     function hhmm(m) {
