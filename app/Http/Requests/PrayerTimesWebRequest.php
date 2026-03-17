@@ -15,8 +15,8 @@ class PrayerTimesWebRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'island_id' => ['nullable', 'integer', 'min:1'],
-            'date'      => ['nullable', 'string'],
+            'island_id' => ['nullable', 'integer', 'min:1', 'exists:prayer_islands,id'],
+            'date'      => ['nullable', 'date_format:Y-m-d'],
         ];
     }
 

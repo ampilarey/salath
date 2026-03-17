@@ -530,7 +530,7 @@
                     </svg>
                     ތިބާ ހުރި ތަން
                 </button>
-                <div class="pt-geo-toast" id="geoToast"></div>
+                <div class="pt-geo-toast" id="geoToast" role="alert" aria-live="polite"></div>
             </div>
 
         </div>
@@ -757,7 +757,7 @@
 
         btn.addEventListener('click', function () {
             if (!navigator.geolocation) {
-                showToast('Geolocation is not supported by your browser.', true);
+                showToast('ތިބާ ހުރި ތަން ހޯދޭ ޑިވައިސެއް ނެތް.', true);
                 return;
             }
 
@@ -777,22 +777,22 @@
                                 document.getElementById('island_id').value = data.island.id;
                                 document.getElementById('ptForm').submit();
                             } else {
-                                showToast('No island found nearby.', true);
+                                showToast('ކައިރި ރަށެއް ނުފެނުނު.', true);
                                 resetBtn();
                             }
                         })
                         .catch(() => {
-                            showToast('Could not reach the server. Please try again.', true);
+                            showToast('ސާވަރ އާ ގުޅޭ ގޮތް ނުވި. އަލުން ތަކުރާރު ކޮށްލާ.', true);
                             resetBtn();
                         });
                 },
                 err => {
                     const messages = {
-                        1: 'Location access denied. Please allow location in browser settings.',
-                        2: 'Location unavailable.',
-                        3: 'Location request timed out.',
+                        1: 'ތިބާ ހުރި ތަން ހޯދުމަށް ހުއްދަ ދެއްވާ.',
+                        2: 'ތިބާ ހުރި ތަން ނޭނގުނު.',
+                        3: 'ތިބާ ހުރި ތަން ހޯދުމަށް ގިނަ ވަގުތު ނެގި.',
                     };
-                    showToast(messages[err.code] ?? 'Location error.', true);
+                    showToast(messages[err.code] ?? 'ތިބާ ހުރި ތަން ހޯދިއެއް ނުފެނުނު.', true);
                     resetBtn();
                 },
                 { timeout: 10000 }
@@ -808,7 +808,7 @@
         if (!el) return;
         try {
             const d     = new Date('{{ $viewModel->selectedDate->toDateString() }}T12:00:00');
-            const parts = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+            const parts = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
                 day: 'numeric', month: 'long', year: 'numeric',
             }).formatToParts(d);
             el.textContent = parts.map(p => p.value).join('');
@@ -825,12 +825,13 @@
         if (!display) return;
 
         function tick() {
-            const mv = new Date(new Date().toLocaleString('en-US', { timeZone: 'Indian/Maldives' }));
-            const h  = String(mv.getHours()).padStart(2, '0');
-            const m  = String(mv.getMinutes()).padStart(2, '0');
-            const s  = String(mv.getSeconds()).padStart(2, '0');
-            const ap = mv.getHours() >= 12 ? 'PM' : 'AM';
-            display.innerHTML = h + ':' + m + ':' + s +
+            const mv  = new Date(new Date().toLocaleString('en-US', { timeZone: 'Indian/Maldives' }));
+            const h24 = mv.getHours();
+            const h12 = h24 % 12 || 12;
+            const m   = String(mv.getMinutes()).padStart(2, '0');
+            const s   = String(mv.getSeconds()).padStart(2, '0');
+            const ap  = h24 >= 12 ? 'PM' : 'AM';
+            display.innerHTML = String(h12).padStart(2, '0') + ':' + m + ':' + s +
                 ' <span class="pt-clock-ampm">' + ap + '</span>';
         }
 
@@ -842,8 +843,19 @@
        Next-prayer hero + card highlights
        Only active when viewing today's prayers
     ═══════════════════════════════════════════ */
-    const IS_TODAY = '{{ $viewModel->selectedDate->toDateString() }}' ===
-        new Date().toISOString().slice(0, 10);
+
+    // All time comparisons must use Maldives time (Indian/Maldives = UTC+5, no DST).
+    function getMVT() {
+        return new Date(new Date().toLocaleString('en-US', { timeZone: 'Indian/Maldives' }));
+    }
+    function mvtDateString() {
+        const mv = getMVT();
+        return mv.getFullYear() + '-' +
+            String(mv.getMonth() + 1).padStart(2, '0') + '-' +
+            String(mv.getDate()).padStart(2, '0');
+    }
+
+    const IS_TODAY = '{{ $viewModel->selectedDate->toDateString() }}' === mvtDateString();
 
     @if($viewModel->prayers)
     (function initCountdown() {
@@ -876,10 +888,8 @@
             return [...document.querySelectorAll('.pt-card')];
         }
 
-        function findNextSalah() {
-            const now    = new Date();
-            const nowMin = now.getHours() * 60 + now.getMinutes();
-            const cards  = getCards();
+        function findNextSalah(nowMin) {
+            const cards = getCards();
             for (const card of cards) {
                 if (card.dataset.isSalah !== '1') continue;
                 if (parseHHMM(card.dataset.time) > nowMin) {
@@ -896,11 +906,14 @@
         }
 
         function tick() {
-            const now    = new Date();
-            const nowMin = now.getHours() * 60 + now.getMinutes();
+            // Always compute current time in MVT so comparisons are correct for
+            // all visitors, regardless of their device's local timezone.
+            const mvNow  = getMVT();
+            const nowMin = mvNow.getHours() * 60 + mvNow.getMinutes();
             const cards  = getCards();
 
-            // Mark past / is-next — skip sunrise for the 'is-next' logic
+            // Mark past / is-next — skip sunrise for the 'is-next' logic.
+            // A prayer stays 'is-next' until the NEXT minute begins (t < nowMin).
             let nextFound = false;
             cards.forEach(card => {
                 card.classList.remove('is-next', 'is-past');
@@ -909,23 +922,23 @@
                 if (!nextFound && t > nowMin) {
                     card.classList.add('is-next');
                     nextFound = true;
-                } else if (t <= nowMin) {
+                } else if (t < nowMin) {
                     card.classList.add('is-past');
                 }
             });
 
             // Hero countdown
-            const next = findNextSalah();
+            const next    = findNextSalah(nowMin);
             const heroBox = document.getElementById('heroBox');
 
             if (next) {
                 document.getElementById('heroName').textContent  = PRAYER_NAMES_DV[next.key] ?? next.key;
                 document.getElementById('heroTime').textContent  = PRAYER_NAMES_EN[next.key] + ' — ' + next.time;
 
-                const [nh, nm] = next.time.split(':').map(Number);
-                const target   = new Date();
-                target.setHours(nh, nm, 0, 0);
-                document.getElementById('heroCountdown').textContent = formatCountdown(target - now);
+                // Compute diff entirely in MVT minutes to avoid local-timezone setHours() errors.
+                const [nh, nm]  = next.time.split(':').map(Number);
+                const diffMs    = ((nh * 60 + nm) - nowMin) * 60_000 - mvNow.getSeconds() * 1_000;
+                document.getElementById('heroCountdown').textContent = formatCountdown(diffMs);
 
                 const afterCard = findAfterNext(next.key);
                 if (afterCard) {
@@ -936,14 +949,17 @@
                     document.getElementById('heroAfter').textContent = '';
                 }
             } else {
-                // Fetch tomorrow's Fajr once and cache it
+                // Fetch tomorrow's Fajr once and cache it.
+                // Use the MVT date so the "tomorrow" label is correct around midnight.
                 if (!window._tomorrowFajrFetched) {
                     window._tomorrowFajrFetched = true;
                     const islandId = {{ $viewModel->selectedIsland?->id ?? 'null' }};
                     if (islandId) {
-                        const tmrw = new Date();
-                        tmrw.setDate(tmrw.getDate() + 1);
-                        const tmrwStr = tmrw.toISOString().slice(0, 10);
+                        const tmrwMV  = getMVT();
+                        tmrwMV.setDate(tmrwMV.getDate() + 1);
+                        const tmrwStr = tmrwMV.getFullYear() + '-' +
+                            String(tmrwMV.getMonth() + 1).padStart(2, '0') + '-' +
+                            String(tmrwMV.getDate()).padStart(2, '0');
                         fetch('/api/prayer-times?island_id=' + islandId + '&date=' + tmrwStr)
                             .then(r => r.json())
                             .then(data => { window._tomorrowFajrTime = data?.prayers?.fajr ?? null; })
@@ -956,10 +972,10 @@
                     document.getElementById('heroName').textContent = PRAYER_NAMES_DV['fajr'];
                     document.getElementById('heroTime').textContent = PRAYER_NAMES_EN['fajr'] + ' — ' + window._tomorrowFajrTime + ' · Tomorrow';
                     const [fh, fm] = window._tomorrowFajrTime.split(':').map(Number);
-                    const target = new Date();
-                    target.setDate(target.getDate() + 1);
-                    target.setHours(fh, fm, 0, 0);
-                    document.getElementById('heroCountdown').textContent = formatCountdown(target - now);
+                    // Tomorrow's Fajr diff: minutes remaining in today + fajr minutes into tomorrow.
+                    const minsToMidnight = (24 * 60) - nowMin;
+                    const diffMs = (minsToMidnight + fh * 60 + fm) * 60_000 - mvNow.getSeconds() * 1_000;
+                    document.getElementById('heroCountdown').textContent = formatCountdown(diffMs);
                     document.getElementById('heroAfter').textContent = '';
                 } else {
                     if (heroBox) heroBox.style.opacity = '.55';

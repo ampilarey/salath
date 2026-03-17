@@ -18,6 +18,13 @@ final class PrayerTimeResolver
     {
         $dayOfYear = PrayerTimeHelper::dayOfYear($date);
 
+        // The source data was generated for a leap year (366 rows, days 1–366).
+        // In non-leap years Carbon's dayOfYear skips day 60 (Feb 29), so from
+        // Mar 1 onward every lookup would land one row early. Add 1 to realign.
+        if (!$date->isLeapYear() && $dayOfYear >= 60) {
+            $dayOfYear++;
+        }
+
         $row = DB::table('prayer_times')
             ->where('category_id', $island->categoryId)
             ->where('day_of_year', $dayOfYear)

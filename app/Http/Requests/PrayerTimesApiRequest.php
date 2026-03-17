@@ -17,7 +17,7 @@ class PrayerTimesApiRequest extends FormRequest
     {
         return [
             'island_id' => ['required', 'integer', 'min:1', 'exists:prayer_islands,id'],
-            'date'      => ['nullable', 'string'],
+            'date'      => ['nullable', 'date_format:Y-m-d'],
         ];
     }
 

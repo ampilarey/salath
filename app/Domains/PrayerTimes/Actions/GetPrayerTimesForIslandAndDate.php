@@ -20,9 +20,19 @@ final class GetPrayerTimesForIslandAndDate
     {
         $key = "prayer_times.{$island->id}.{$date->format('Y-m-d')}";
 
-        return Cache::remember($key, self::CACHE_TTL, fn () =>
-            $this->resolver->resolve($island, $date)
-        );
+        if (Cache::has($key)) {
+            return Cache::get($key);
+        }
+
+        $result = $this->resolver->resolve($island, $date);
+
+        // Only cache successful lookups — null means no data row exists yet,
+        // and caching it would block a subsequent import from being visible.
+        if ($result !== null) {
+            Cache::put($key, $result, self::CACHE_TTL);
+        }
+
+        return $result;
     }
 
     public static function forgetCache(int $islandId, Carbon $date): void

@@ -15,17 +15,26 @@
 (function (global) {
     'use strict';
 
-    /* Derive the script's own origin so font URLs work from any domain. */
+    /* Derive the script's own origin so font URLs work from any domain.
+     * document.currentScript is reliable at parse-time regardless of async/defer. */
     const SCRIPT_ORIGIN = (function () {
-        const scripts = document.getElementsByTagName('script');
-        const last    = scripts[scripts.length - 1];
         try {
-            const u = new URL(last.src);
-            return u.origin;
+            return new URL((document.currentScript || {}).src || '').origin;
         } catch {
             return '';
         }
     })();
+
+    /* All time comparisons must use Maldives time (UTC+5, no DST). */
+    function getMVT() {
+        return new Date(new Date().toLocaleString('en-US', { timeZone: 'Indian/Maldives' }));
+    }
+    function mvtDateString() {
+        const mv = getMVT();
+        return mv.getFullYear() + '-' +
+            String(mv.getMonth() + 1).padStart(2, '0') + '-' +
+            String(mv.getDate()).padStart(2, '0');
+    }
 
     /* ── CSS ── */
     const CSS = `
@@ -111,10 +120,12 @@
         }
         const uid = container.id;
 
-        let islandId  = parseInt(container.dataset.islandId, 10) || 0;
-        let prayerData = null;
-        let islands    = [];
-        let tickTimer  = null;
+        let islandId       = parseInt(container.dataset.islandId, 10) || 0;
+        let prayerData     = null;
+        let islands        = [];
+        let tickTimer      = null;
+        let activeFetch    = null;   // AbortController for in-flight loadTimes fetch
+        let tomorrowFajr   = null;   // cached tomorrow Fajr time string after Isha
 
         container.className = 'sw-wrap sw-' + theme;
         container.innerHTML = '<div class="sw-loading">' + (lang === 'dv' ? 'ލޯޑު ވަނީ...' : 'Loading...') + '</div>';
@@ -160,7 +171,8 @@
                 sel.appendChild(og);
             });
             sel.addEventListener('change', () => {
-                islandId = parseInt(sel.value, 10);
+                islandId     = parseInt(sel.value, 10);
+                tomorrowFajr = null;   // reset so next-day Fajr is re-fetched for new island
                 loadTimes();
             });
 
@@ -192,8 +204,10 @@
 
         function tick() {
             if (!prayerData) return;
-            const now    = new Date();
-            const nowMin = now.getHours() * 60 + now.getMinutes();
+
+            // Use MVT so comparisons are correct for visitors outside Maldives.
+            const mvNow  = getMVT();
+            const nowMin = mvNow.getHours() * 60 + mvNow.getMinutes();
 
             let nextKey  = null;
             let nextTime = null;
@@ -213,7 +227,7 @@
                     badge.className   = 'sw-card-next-badge';
                     badge.textContent = lang === 'dv' ? 'ދެން' : 'next';
                     card.prepend(badge);
-                } else if (t <= nowMin) {
+                } else if (t < nowMin) {
                     card.classList.add('past');
                 }
             });
@@ -227,19 +241,48 @@
                 nnEl.textContent = PRAYER_META[nextKey][lang];
                 ntEl.textContent = nextTime;
                 const [nh, nm] = nextTime.split(':').map(Number);
-                const target   = new Date();
-                target.setHours(nh, nm, 0, 0);
-                tmEl.textContent = formatCountdown(target - now);
+                const diffMs   = ((nh * 60 + nm) - nowMin) * 60_000 - mvNow.getSeconds() * 1_000;
+                tmEl.textContent = formatCountdown(diffMs);
             } else {
-                nnEl.textContent = lang === 'dv' ? 'ދެން ވަންނަ ނަމާދު ނެތް' : 'No more prayers today';
-                ntEl.textContent = '';
-                tmEl.textContent = '––:––:––';
+                // After Isha — fetch tomorrow's Fajr and count down to it.
+                if (!tomorrowFajr) {
+                    const tmrwMV  = getMVT();
+                    tmrwMV.setDate(tmrwMV.getDate() + 1);
+                    const tmrwStr = tmrwMV.getFullYear() + '-' +
+                        String(tmrwMV.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(tmrwMV.getDate()).padStart(2, '0');
+                    fetch(apiBase + '/api/prayer-times?island_id=' + islandId + '&date=' + tmrwStr)
+                        .then(r => r.json())
+                        .then(data => { tomorrowFajr = data?.prayers?.fajr ?? null; })
+                        .catch(() => {});
+                }
+
+                if (tomorrowFajr) {
+                    nnEl.textContent = PRAYER_META['fajr'][lang];
+                    ntEl.textContent = tomorrowFajr + ' · ' + (lang === 'dv' ? 'މާދަމާ' : 'Tomorrow');
+                    const [fh, fm]       = tomorrowFajr.split(':').map(Number);
+                    const minsToMidnight = (24 * 60) - nowMin;
+                    const diffMs         = (minsToMidnight + fh * 60 + fm) * 60_000 - mvNow.getSeconds() * 1_000;
+                    tmEl.textContent = formatCountdown(diffMs);
+                } else {
+                    nnEl.textContent = lang === 'dv' ? 'ދެން ވަންނަ ނަމާދު ނެތް' : 'No more prayers today';
+                    ntEl.textContent = '';
+                    tmEl.textContent = '––:––:––';
+                }
             }
         }
 
         function loadTimes() {
-            const today = new Date().toISOString().slice(0, 10);
-            fetch(apiBase + '/api/prayer-times?island_id=' + islandId + '&date=' + today)
+            // Abort any in-flight request to prevent stale responses overwriting fresh ones.
+            if (activeFetch) activeFetch.abort();
+            activeFetch = new AbortController();
+
+            tomorrowFajr = null;  // reset so we re-fetch for the new island/date
+
+            const today = mvtDateString();
+            fetch(apiBase + '/api/prayer-times?island_id=' + islandId + '&date=' + today, {
+                signal: activeFetch.signal,
+            })
                 .then(r => {
                     if (!r.ok) throw new Error('HTTP ' + r.status);
                     return r.json();
@@ -252,6 +295,7 @@
                     }
                 })
                 .catch(err => {
+                    if (err.name === 'AbortError') return;  // superseded by newer request
                     container.innerHTML = '<div class="sw-error">Could not load prayer times. ' + err.message + '</div>';
                 });
         }
