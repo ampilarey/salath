@@ -46,6 +46,20 @@
 .pt-controls input[type="date"]:focus { border-color: var(--clr-primary); }
 .pt-field { flex: 1 1 220px; }
 .pt-field-date { flex: 0 0 160px; }
+.date-display {
+    background: var(--clr-surface2);
+    color: var(--clr-text);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-sm);
+    padding: .6rem .9rem;
+    font-size: .92rem;
+    font-family: var(--font-latin);
+    cursor: pointer;
+    width: 100%;
+    transition: border-color .2s;
+    white-space: nowrap;
+}
+.date-display:hover { border-color: var(--clr-primary); }
 .pt-geo-btn {
     background: var(--clr-surface2);
     color: var(--clr-primary);
@@ -347,12 +361,16 @@
             </div>
 
             {{-- Date picker --}}
-            <div class="pt-field-date">
+            <div class="pt-field-date" style="position:relative;">
                 <label for="date">ތާރީޙް</label>
+                <div class="date-display" id="dateDisplay" onclick="document.getElementById('date').showPicker()">
+                    📅 {{ $selectedDate->format('j M Y') }}
+                </div>
                 <input type="date" name="date" id="date"
                        value="{{ $selectedDate->toDateString() }}"
                        min="2026-01-01"
-                       max="2026-12-31">
+                       max="2026-12-31"
+                       style="position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer;">
             </div>
 
             {{-- Geolocation button --}}
@@ -510,8 +528,15 @@
         });
     })();
 
-    /* ─────────────── Auto-submit on change ─────────────── */
-    document.getElementById('date').addEventListener('change', () => document.getElementById('ptForm').submit());
+    /* ─────────────── Date picker ─────────────── */
+    document.getElementById('date').addEventListener('change', function () {
+        const d = new Date(this.value + 'T00:00:00');
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const day = d.getDate();
+        const suffix = [,'st','nd','rd'][day] || 'th';
+        document.getElementById('dateDisplay').textContent = '📅 ' + day + suffix + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+        document.getElementById('ptForm').submit();
+    });
 
     /* ─────────────── Geolocation ─────────────── */
     document.getElementById('geoBtn').addEventListener('click', function () {
