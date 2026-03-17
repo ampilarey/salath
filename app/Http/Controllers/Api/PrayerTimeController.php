@@ -18,7 +18,7 @@ class PrayerTimeController extends Controller
             ->where('is_active', true)
             ->orderBy('atoll')
             ->orderBy('name')
-            ->get(['id', 'category_id', 'atoll', 'name', 'latitude', 'longitude', 'offset_minutes']);
+            ->get(['id', 'category_id', 'atoll', 'atoll_latin', 'name', 'name_latin', 'latitude', 'longitude', 'offset_minutes']);
 
         $grouped = $islands->groupBy('atoll')->map(fn($g) => $g->values())->toArray();
 

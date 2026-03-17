@@ -221,13 +221,14 @@
                 <label for="island_id">ރަށް</label>
                 <select name="island_id" id="island_id">
                     @foreach($grouped as $atoll => $atollIslands)
-                        <optgroup label="{{ $atoll }}">
+                        @php $atollLatin = $atollIslands->first()->atoll_latin ?? null; @endphp
+                        <optgroup label="{{ $atoll }}{{ $atollLatin ? ' — ' . $atollLatin : '' }}">
                             @foreach($atollIslands as $isl)
                                 <option value="{{ $isl->id }}"
                                     data-lat="{{ $isl->latitude }}"
                                     data-lng="{{ $isl->longitude }}"
                                     {{ (int)$isl->id === (int)($selectedIsland?->id ?? 0) ? 'selected' : '' }}>
-                                    {{ $isl->name }}
+                                    {{ $isl->name }}{{ $isl->name_latin ? ' (' . $isl->name_latin . ')' : '' }}
                                 </option>
                             @endforeach
                         </optgroup>
@@ -257,7 +258,12 @@
 
     {{-- ══ Date heading ══ --}}
     <div class="pt-date-strip">
-        <div class="pt-island-name">{{ $selectedIsland?->name ?? '–' }}</div>
+        <div class="pt-island-name">
+            {{ $selectedIsland?->name ?? '–' }}
+            @if($selectedIsland?->name_latin)
+                <span style="font-size:.85em;font-weight:400;color:var(--clr-muted);font-family:'Inter',sans-serif;margin-inline-start:.4rem">({{ $selectedIsland->name_latin }})</span>
+            @endif
+        </div>
         <div class="pt-greg">{{ $selectedDate->translatedFormat('l, j F Y') }}</div>
         <div class="pt-hijri" id="hijriDate">ލޯޑު ވަނީ...</div>
         <div class="pt-maldives-clock" id="maldivesClock">––:––:–– </div>
