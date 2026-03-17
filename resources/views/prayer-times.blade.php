@@ -201,6 +201,89 @@
 }
 .pt-card.is-next .pt-card-time { color: var(--clr-primary); }
 
+/* ─── Custom island dropdown ─── */
+.isl-dropdown { position: relative; width: 100%; }
+.isl-trigger {
+    background: var(--clr-surface2);
+    color: var(--clr-text);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-sm);
+    padding: .6rem .9rem;
+    font-size: .95rem;
+    font-family: var(--font-dhivehi);
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    transition: border-color .2s;
+    text-align: right;
+}
+.isl-trigger:hover, .isl-trigger.open { border-color: var(--clr-primary); }
+.isl-trigger-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.isl-trigger-latin { font-family: var(--font-latin); font-size: .8rem; color: var(--clr-muted); white-space: nowrap; }
+.isl-arrow { font-size: .7rem; color: var(--clr-muted); transition: transform .2s; flex-shrink: 0; }
+.isl-trigger.open .isl-arrow { transform: rotate(180deg); }
+.isl-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--clr-surface);
+    border: 1px solid var(--clr-primary);
+    border-radius: var(--radius-sm);
+    z-index: 999;
+    display: none;
+    flex-direction: column;
+    max-height: 340px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+}
+.isl-panel.open { display: flex; }
+.isl-search {
+    padding: .6rem .75rem;
+    border-bottom: 1px solid var(--clr-border);
+    flex-shrink: 0;
+}
+.isl-search input {
+    width: 100%;
+    background: var(--clr-surface2);
+    color: var(--clr-text);
+    border: 1px solid var(--clr-border);
+    border-radius: 6px;
+    padding: .45rem .7rem;
+    font-size: .88rem;
+    font-family: var(--font-latin);
+    outline: none;
+}
+.isl-search input:focus { border-color: var(--clr-primary); }
+.isl-list { overflow-y: auto; flex: 1; }
+.isl-group-label {
+    padding: .4rem .75rem .2rem;
+    font-size: .72rem;
+    color: var(--clr-primary);
+    font-family: var(--font-latin);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    background: var(--clr-surface);
+    position: sticky;
+    top: 0;
+    border-bottom: 1px solid var(--clr-border);
+}
+.isl-option {
+    padding: .55rem .9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    transition: background .15s;
+}
+.isl-option:hover, .isl-option.active { background: var(--clr-surface2); }
+.isl-option.selected { color: var(--clr-primary); }
+.isl-option-dv { font-family: var(--font-dhivehi); font-size: .95rem; }
+.isl-option-lat { font-family: var(--font-latin); font-size: .78rem; color: var(--clr-muted); white-space: nowrap; }
+.isl-no-results { padding: 1rem; text-align: center; color: var(--clr-muted); font-family: var(--font-latin); font-size: .88rem; }
+
 /* ─── No-data ─── */
 .pt-empty {
     text-align: center;
@@ -220,22 +303,45 @@
         <div class="pt-controls">
             {{-- Island selector --}}
             <div class="pt-field">
-                <label for="island_id">ރަށް</label>
-                <select name="island_id" id="island_id">
-                    @foreach($grouped as $atoll => $atollIslands)
-                        @php $atollLatin = $atollIslands->first()->atoll_latin ?? null; @endphp
-                        <optgroup label="{{ $atoll }}{{ $atollLatin ? ' — ' . $atollLatin : '' }}">
-                            @foreach($atollIslands as $isl)
-                                <option value="{{ $isl->id }}"
-                                    data-lat="{{ $isl->latitude }}"
-                                    data-lng="{{ $isl->longitude }}"
-                                    {{ (int)$isl->id === (int)($selectedIsland?->id ?? 0) ? 'selected' : '' }}>
-                                    {{ $isl->name }}{{ $isl->name_latin ? ' (' . $isl->name_latin . ')' : '' }}
-                                </option>
+                <label>ރަށް</label>
+                {{-- Hidden input for form submission --}}
+                <input type="hidden" name="island_id" id="island_id" value="{{ $selectedIsland?->id ?? '' }}">
+
+                <div class="isl-dropdown" id="islDropdown">
+                    <button type="button" class="isl-trigger" id="islTrigger">
+                        <span class="isl-trigger-text">{{ $selectedIsland?->name ?? 'ރަށް ހިޔާރު ކުރޭ' }}</span>
+                        @if($selectedIsland?->name_latin)
+                            <span class="isl-trigger-latin">({{ $selectedIsland->name_latin }})</span>
+                        @endif
+                        <span class="isl-arrow">▼</span>
+                    </button>
+                    <div class="isl-panel" id="islPanel">
+                        <div class="isl-search">
+                            <input type="text" id="islSearch" placeholder="Search island..." autocomplete="off">
+                        </div>
+                        <div class="isl-list" id="islList">
+                            @foreach($grouped as $atoll => $atollIslands)
+                                @php $atollLatin = $atollIslands->first()->atoll_latin ?? null; @endphp
+                                <div class="isl-group" data-atoll="{{ $atoll }}">
+                                    <div class="isl-group-label">{{ $atoll }}{{ $atollLatin ? ' — ' . $atollLatin : '' }}</div>
+                                    @foreach($atollIslands as $isl)
+                                        <div class="isl-option {{ (int)$isl->id === (int)($selectedIsland?->id ?? 0) ? 'selected' : '' }}"
+                                             data-id="{{ $isl->id }}"
+                                             data-dv="{{ $isl->name }}"
+                                             data-lat-name="{{ $isl->name_latin ?? '' }}"
+                                             data-atoll="{{ $atoll }}">
+                                            <span class="isl-option-dv">{{ $isl->name }}</span>
+                                            @if($isl->name_latin)
+                                                <span class="isl-option-lat">{{ $isl->name_latin }}</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
                             @endforeach
-                        </optgroup>
-                    @endforeach
-                </select>
+                            <div class="isl-no-results" id="islNoResults" style="display:none">No islands found</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- Date picker --}}
@@ -328,9 +434,82 @@
     const PRAYERS_RAW = @json($prayers ?? []);
     const IS_TODAY = '{{ $selectedDate->toDateString() }}' === new Date().toISOString().slice(0,10);
 
+    /* ─────────────── Custom island dropdown ─────────────── */
+    (function () {
+        const trigger  = document.getElementById('islTrigger');
+        const panel    = document.getElementById('islPanel');
+        const search   = document.getElementById('islSearch');
+        const list     = document.getElementById('islList');
+        const noRes    = document.getElementById('islNoResults');
+        const hidden   = document.getElementById('island_id');
+
+        trigger.addEventListener('click', () => {
+            const open = panel.classList.toggle('open');
+            trigger.classList.toggle('open', open);
+            if (open) { search.focus(); }
+        });
+
+        document.addEventListener('click', e => {
+            if (!document.getElementById('islDropdown').contains(e.target)) {
+                panel.classList.remove('open');
+                trigger.classList.remove('open');
+            }
+        });
+
+        search.addEventListener('input', () => {
+            const q = search.value.toLowerCase();
+            let anyVisible = false;
+            list.querySelectorAll('.isl-group').forEach(group => {
+                let groupHas = false;
+                group.querySelectorAll('.isl-option').forEach(opt => {
+                    const dv  = opt.dataset.dv.toLowerCase();
+                    const lat = opt.dataset.latName.toLowerCase();
+                    const atoll = opt.dataset.atoll.toLowerCase();
+                    const match = !q || dv.includes(q) || lat.includes(q) || atoll.includes(q);
+                    opt.style.display = match ? '' : 'none';
+                    if (match) groupHas = true;
+                });
+                group.style.display = groupHas ? '' : 'none';
+                if (groupHas) anyVisible = true;
+            });
+            noRes.style.display = anyVisible ? 'none' : '';
+        });
+
+        list.querySelectorAll('.isl-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const id      = opt.dataset.id;
+                const dv      = opt.dataset.dv;
+                const latName = opt.dataset.latName;
+
+                hidden.value = id;
+                trigger.querySelector('.isl-trigger-text').textContent = dv;
+                const latEl = trigger.querySelector('.isl-trigger-latin');
+                if (latName) {
+                    if (latEl) { latEl.textContent = '(' + latName + ')'; }
+                    else {
+                        const s = document.createElement('span');
+                        s.className = 'isl-trigger-latin';
+                        s.textContent = '(' + latName + ')';
+                        trigger.querySelector('.isl-arrow').before(s);
+                    }
+                } else if (latEl) { latEl.remove(); }
+
+                list.querySelectorAll('.isl-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+
+                panel.classList.remove('open');
+                trigger.classList.remove('open');
+                search.value = '';
+                list.querySelectorAll('.isl-group, .isl-option').forEach(el => el.style.display = '');
+                noRes.style.display = 'none';
+
+                document.getElementById('ptForm').submit();
+            });
+        });
+    })();
+
     /* ─────────────── Auto-submit on change ─────────────── */
-    document.getElementById('island_id').addEventListener('change', () => document.getElementById('ptForm').submit());
-    document.getElementById('date').addEventListener('change',      () => document.getElementById('ptForm').submit());
+    document.getElementById('date').addEventListener('change', () => document.getElementById('ptForm').submit());
 
     /* ─────────────── Geolocation ─────────────── */
     document.getElementById('geoBtn').addEventListener('click', function () {
@@ -349,6 +528,7 @@
                             document.getElementById('ptForm').submit();
                         }
                     })
+
                     .catch(() => { btn.textContent = 'ތިބާ ހުރި ތަން'; btn.disabled = false; });
             },
             () => { btn.textContent = 'ތިބާ ހުރި ތަން'; btn.disabled = false; }
