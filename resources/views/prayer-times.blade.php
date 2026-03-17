@@ -532,7 +532,6 @@
     /* ─────────────── Date picker ─────────────── */
     document.getElementById('date').addEventListener('change', function () {
         const d = new Date(this.value + 'T00:00:00');
-        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
         const day    = d.getDate();
         const suffix = day % 10 === 1 && day !== 11 ? 'st' : day % 10 === 2 && day !== 12 ? 'nd' : day % 10 === 3 && day !== 13 ? 'rd' : 'th';
