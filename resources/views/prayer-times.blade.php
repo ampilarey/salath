@@ -83,6 +83,21 @@
     color: var(--clr-primary);
     margin-bottom: .25rem;
 }
+.pt-maldives-clock {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--clr-text);
+    font-family: 'Inter', monospace;
+    letter-spacing: .06em;
+    margin-top: .4rem;
+}
+.pt-maldives-clock span {
+    font-size: .75rem;
+    color: var(--clr-muted);
+    font-weight: 400;
+    letter-spacing: .03em;
+    margin-right: .3rem;
+}
 
 /* ─── Countdown ─── */
 .pt-countdown {
@@ -245,6 +260,7 @@
         <div class="pt-island-name">{{ $selectedIsland?->name ?? '–' }}</div>
         <div class="pt-greg">{{ $selectedDate->translatedFormat('l, j F Y') }}</div>
         <div class="pt-hijri" id="hijriDate">ލޯޑު ވަނީ...</div>
+        <div class="pt-maldives-clock" id="maldivesClock">––:––:–– </div>
     </div>
 
     @if($prayers)
@@ -342,6 +358,22 @@
         } catch (e) {
             document.getElementById('hijriDate').textContent = '';
         }
+    })();
+
+    /* ─────────────── Maldives live clock (UTC+5) ─────────────── */
+    (function maldivesClock() {
+        function updateClock() {
+            const now = new Date();
+            const mv = new Date(now.toLocaleString('en-US', { timeZone: 'Indian/Maldives' }));
+            const h = String(mv.getHours()).padStart(2, '0');
+            const m = String(mv.getMinutes()).padStart(2, '0');
+            const s = String(mv.getSeconds()).padStart(2, '0');
+            const ampm = mv.getHours() >= 12 ? 'PM' : 'AM';
+            document.getElementById('maldivesClock').innerHTML =
+                `<span>މޯލްޑިވްސް ގަޑި</span>${h}:${m}:${s} <small style="font-size:.8rem;color:var(--clr-muted)">${ampm}</small>`;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
     })();
 
     /* ─────────────── Next-prayer highlight & countdown ─────────────── */
