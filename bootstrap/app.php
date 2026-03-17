@@ -17,5 +17,27 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Return consistent JSON error envelope for all API routes
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                    $status = 422;
+                } elseif (method_exists($e, 'getStatusCode')) {
+                    $status = $e->getStatusCode();
+                } else {
+                    $status = 500;
+                }
+                $message = $e instanceof \Illuminate\Validation\ValidationException
+                    ? $e->getMessage()
+                    : ($status < 500 ? $e->getMessage() : 'Server error');
+
+                $body = ['error' => $message];
+
+                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                    $body['errors'] = $e->errors();
+                }
+
+                return response()->json($body, $status);
+            }
+        });
     })->create();

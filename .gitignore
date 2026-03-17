@@ -1,6 +1,10 @@
 *.log
 .DS_Store
 .env
+# Prayer source database — copy to database/salat.db locally
+/database/salat.db
+# Backup database folder (if present)
+/backup databse/
 .env.backup
 .env.production
 .phpactor.json
