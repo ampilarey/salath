@@ -34,11 +34,13 @@
     border-radius: var(--radius-sm);
     padding: .6rem .9rem;
     font-size: .95rem;
-    font-family: var(--font-dhivehi);
+    font-family: var(--font-latin);
     cursor: pointer;
     outline: none;
     transition: border-color .2s;
     width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
 }
 .pt-controls select:focus,
 .pt-controls input[type="date"]:focus { border-color: var(--clr-primary); }
@@ -372,7 +374,7 @@
                 <span style="font-size:.85em;font-weight:400;color:var(--clr-muted);font-family:var(--font-latin);margin-inline-start:.4rem">({{ $selectedIsland->name_latin }})</span>
             @endif
         </div>
-        <div class="pt-greg">{{ $selectedDate->translatedFormat('l, j F Y') }}</div>
+        <div class="pt-greg">{{ $selectedDate->format('jS F Y') }}</div>
         <div class="pt-hijri" id="hijriDate">ލޯޑު ވަނީ...</div>
         <div class="pt-maldives-clock" id="maldivesClock">––:––:–– </div>
     </div>
