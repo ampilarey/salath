@@ -84,6 +84,7 @@
             color: var(--clr-muted);
             font-size: .85rem;
             margin-top: 3rem;
+            font-family: var(--font-latin);
         }
 
         @yield('extra-styles')

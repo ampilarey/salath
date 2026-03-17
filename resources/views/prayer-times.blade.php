@@ -71,11 +71,13 @@
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--clr-text);
+    font-family: var(--font-latin);
 }
 .pt-date-strip .pt-hijri {
     font-size: .88rem;
     color: var(--clr-muted);
     margin-top: .2rem;
+    font-family: var(--font-latin);
 }
 .pt-island-name {
     font-size: 1.4rem;
@@ -189,7 +191,7 @@
     font-weight: 700;
     color: var(--clr-text);
 }
-.pt-card-sub { font-size: .8rem; color: var(--clr-muted); margin-top: .1rem; }
+.pt-card-sub { font-size: .8rem; color: var(--clr-muted); margin-top: .1rem; font-family: var(--font-latin); }
 .pt-card-time {
     font-size: 1.55rem;
     font-weight: 700;
