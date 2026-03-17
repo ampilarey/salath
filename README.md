@@ -352,10 +352,25 @@ php artisan cache:clear
 - [ ] HTTPS / SSL certificate active
 - [ ] Cron/scheduler configured if needed
 
-### Updating from Git
+### Git Remote
+
+```
+https://github.com/ampilarey/salath.git
+```
+
+### Production Server
+
+| | |
+|---|---|
+| **Host** | `sg-s2` |
+| **User** | `bakeandgrill` |
+| **Project path** | `/home/bakeandgrill/salath.bakeandgrill.mv` |
+| **URL** | https://salath.bakeandgrill.mv |
+
+### Updating from Git (on the server)
 
 ```bash
-cd ~/salath.bakeandgrill.mv
+cd /home/bakeandgrill/salath.bakeandgrill.mv
 git pull
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
