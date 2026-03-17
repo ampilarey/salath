@@ -263,7 +263,7 @@
             @php
                 $prayerDefs = [
                     'fajr'    => ['name' => 'ފަތިސް',  'latin' => 'Fajr',    'icon' => '🌙'],
-                    'sunrise' => ['name' => 'އިރު ނެގުން', 'latin' => 'Sunrise', 'icon' => '🌅'],
+                    'sunrise' => ['name' => 'އިރު އަރުން', 'latin' => 'Sunrise', 'icon' => '🌅'],
                     'dhuhr'   => ['name' => 'މެންދުރު', 'latin' => 'Dhuhr',   'icon' => '☀️'],
                     'asr'     => ['name' => 'އަޞްރު',  'latin' => 'Asr',     'icon' => '🌤️'],
                     'maghrib' => ['name' => 'މަޣްރިބް', 'latin' => 'Maghrib', 'icon' => '🌆'],
@@ -348,7 +348,7 @@
     if (!PRAYERS_RAW || Object.keys(PRAYERS_RAW).length === 0) return;
 
     const PRAYER_NAMES_DV = {
-        fajr: 'ފަތިސް', sunrise: 'އިރު ނެގުން', dhuhr: 'މެންދުރު',
+        fajr: 'ފަތިސް', sunrise: 'އިރު އަރުން', dhuhr: 'މެންދުރު',
         asr: 'އަޞްރު', maghrib: 'މަޣްރިބް', isha: 'ޢިޝާ'
     };
 
