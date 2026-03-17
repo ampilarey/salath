@@ -22,7 +22,7 @@
 }
 
 .pt-field { flex: 1 1 240px; }
-.pt-field-date { flex: 0 0 170px; }
+.pt-field-date { flex: 0 0 160px; }
 .pt-field-geo { flex: 0 0 auto; align-self: flex-end; }
 
 .pt-label {
@@ -158,7 +158,13 @@
     direction: ltr;
 }
 
-/* ─── Date display ─── */
+/* ─── Date picker wrapper ─── */
+.date-picker-wrap {
+    position: relative;
+    width: 100%;
+}
+
+/* The visible display — pointer-events off so taps fall through to the real input */
 .date-display {
     display: flex;
     align-items: center;
@@ -170,14 +176,36 @@
     font-family: var(--font-body);
     font-size: .98rem;
     color: var(--ink);
-    cursor: pointer;
     width: 100%;
     white-space: nowrap;
-    transition: border-color .2s, box-shadow .2s;
     direction: ltr;
+    pointer-events: none; /* let taps pass through to the input */
+    user-select: none;
 }
-.date-display:hover { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15,92,77,.1); }
+
+/* Hover/focus ring shown via the wrapper instead */
+.date-picker-wrap:hover .date-display,
+.date-picker-wrap:focus-within .date-display {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(15,92,77,.1);
+}
+
 .date-icon { width: 16px; height: 16px; color: var(--primary); flex-shrink: 0; }
+
+/* The real native date input — invisible overlay covering the entire wrapper */
+#ptDate {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-size: 16px; /* prevents iOS auto-zoom on focus */
+}
 
 /* ─── Geo button ─── */
 .pt-geo-btn {
@@ -516,7 +544,7 @@
                 <span class="pt-island-name-latin">({{ $viewModel->selectedIsland->nameLatin }})</span>
             @endif
         </div>
-        <div class="pt-greg">{{ $viewModel->selectedDate->format('jS F Y') }}</div>
+        <div class="pt-greg">{{ $viewModel->selectedDate->format('jS M Y') }}</div>
         <div class="pt-hijri" id="hijriDate">…</div>
         <div class="pt-clock">
             <span class="pt-clock-label">ރާއްޖެ ގަޑި</span>
@@ -674,6 +702,8 @@
 
     /* ═══════════════════════════════════════════
        Date picker
+       The native <input> overlays the display div,
+       so no showPicker() calls needed — works on all platforms.
     ═══════════════════════════════════════════ */
     (function initDatePicker() {
         const input   = document.getElementById('ptDate');
@@ -681,8 +711,8 @@
         if (!input || !display) return;
 
         const MONTHS = [
-            'January','February','March','April','May','June',
-            'July','August','September','October','November','December'
+            'Jan','Feb','Mar','Apr','May','Jun',
+            'Jul','Aug','Sep','Oct','Nov','Dec',
         ];
 
         function formatDate(d) {
