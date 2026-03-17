@@ -17,10 +17,9 @@
         }
     </style>
 
-    {{-- Latin display font: Cormorant Garamond (formal, elegant, appropriate for Islamic cultural context) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,7 +50,7 @@
 
             /* Typography */
             --font-dhivehi: 'A_Faruma', 'MV Faseyha', 'MV Waheed', serif;
-            --font-latin:   'Cormorant Garamond', Georgia, serif;
+            --font-latin:   'Crimson Pro', Georgia, serif;
             --font-body:    'Crimson Pro', Georgia, serif;
         }
 
