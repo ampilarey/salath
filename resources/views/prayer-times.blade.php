@@ -556,7 +556,7 @@
 
         {{-- ════════════ Next Prayer Hero ════════════ --}}
         <div class="pt-hero" id="heroBox">
-            <div class="pt-hero-label">Next Prayer — ދެން ވަންނަ ނަމާދު</div>
+            <div class="pt-hero-label" id="heroLabel">Next Prayer — ދެން ވަންނަ ނަމާދު</div>
             <div>
                 <div class="pt-hero-prayer" id="heroName">–</div>
                 <div class="pt-hero-time" id="heroTime"></div>
@@ -866,12 +866,12 @@
         if (!IS_TODAY) return;
 
         const PRAYER_NAMES_DV = {
-            fajr: 'ފަތިސް', dhuhr: 'މެންދުރު',
+            fajr: 'ފަތިސް', sunrise: 'އިރު ނެގުން', dhuhr: 'މެންދުރު',
             asr: 'އަޞްރު', maghrib: 'މަޣްރިބް', isha: 'ޢިޝާ',
         };
 
         const PRAYER_NAMES_EN = {
-            fajr: 'Fajr', dhuhr: 'Dhuhr',
+            fajr: 'Fajr', sunrise: 'Sunrise', dhuhr: 'Dhuhr',
             asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha',
         };
 
@@ -892,21 +892,26 @@
             return [...document.querySelectorAll('.pt-card')];
         }
 
-        function findNextSalah(nowMin) {
+        // Finds the next upcoming target — includes sunrise between Fajr and Dhuhr.
+        function findNextTarget(nowMin) {
             const cards = getCards();
             for (const card of cards) {
-                if (card.dataset.isSalah !== '1') continue;
                 if (parseHHMM(card.dataset.time) > nowMin) {
-                    return { key: card.dataset.prayer, time: card.dataset.time };
+                    return { key: card.dataset.prayer, time: card.dataset.time, isSalah: card.dataset.isSalah === '1' };
                 }
             }
             return null;
         }
 
-        function findAfterNext(nextKey) {
-            const salahCards = getCards().filter(c => c.dataset.isSalah === '1');
-            const idx = salahCards.findIndex(c => c.dataset.prayer === nextKey);
-            return idx >= 0 && idx + 1 < salahCards.length ? salahCards[idx + 1] : null;
+        // After any target (including sunrise), find the next actual salah.
+        function findAfterNext(currentKey) {
+            const allCards = getCards();
+            const idx = allCards.findIndex(c => c.dataset.prayer === currentKey);
+            if (idx < 0) return null;
+            for (let i = idx + 1; i < allCards.length; i++) {
+                if (allCards[i].dataset.isSalah === '1') return allCards[i];
+            }
+            return null;
         }
 
         function tick() {
@@ -931,13 +936,19 @@
                 }
             });
 
-            // Hero countdown
-            const next    = findNextSalah(nowMin);
+            // Hero countdown — includes sunrise as a waypoint.
+            const next    = findNextTarget(nowMin);
             const heroBox = document.getElementById('heroBox');
 
             if (next) {
+                document.getElementById('heroLabel').textContent = next.isSalah
+                    ? 'Next Prayer — ދެން ވަންނަ ނަމާދު'
+                    : 'Next — ދެން';
                 document.getElementById('heroName').textContent  = PRAYER_NAMES_DV[next.key] ?? next.key;
-                document.getElementById('heroTime').textContent  = PRAYER_NAMES_EN[next.key] + ' — ' + next.time;
+                const heroTimeLabel = next.isSalah
+                    ? PRAYER_NAMES_EN[next.key] + ' — ' + next.time
+                    : PRAYER_NAMES_EN[next.key] + ' — ' + next.time;
+                document.getElementById('heroTime').textContent  = heroTimeLabel;
 
                 // Compute diff entirely in MVT minutes to avoid local-timezone setHours() errors.
                 const [nh, nm]  = next.time.split(':').map(Number);
