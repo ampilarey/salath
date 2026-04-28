@@ -866,7 +866,7 @@
         if (!IS_TODAY) return;
 
         const PRAYER_NAMES_DV = {
-            fajr: 'ފަތިސް', sunrise: 'އިރު ނެގުން', dhuhr: 'މެންދުރު',
+            fajr: 'ފަތިސް', sunrise: 'އިރު އެރުން', dhuhr: 'މެންދުރު',
             asr: 'އަޞްރު', maghrib: 'މަޣްރިބް', isha: 'ޢިޝާ',
         };
 
