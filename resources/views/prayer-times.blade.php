@@ -820,6 +820,17 @@
     /* ═══════════════════════════════════════════
        Maldives live clock (Indian/Maldives = UTC+5)
     ═══════════════════════════════════════════ */
+
+    // All time comparisons must use Maldives time (Indian/Maldives = UTC+5, no DST).
+    // timeSkew syncs to server clock so device clock drift is ignored.
+    let timeSkew = {{ now()->timestamp * 1000 }} - Date.now();
+    function getMVT() {
+        return new Date(Date.now() + timeSkew + 5 * 3600 * 1000);
+    }
+    function applyServerDate(r) {
+        try { const d = r.headers.get('Date'); if (d) { const s = new Date(d).getTime(); if (!isNaN(s)) timeSkew = s - Date.now(); } } catch(e) {}
+    }
+
     (function initClock() {
         const display = document.getElementById('clockDisplay');
         if (!display) return;
@@ -844,14 +855,6 @@
     // All time comparisons must use Maldives time (Indian/Maldives = UTC+5, no DST).
     // Using a fixed UTC+5 offset avoids relying on toLocaleString() parsing, which is
     // unreliable across browsers. getUTC* methods on the returned Date give MVT values.
-    // timeSkew syncs to server clock so device clock drift is ignored.
-    let timeSkew = {{ now()->timestamp * 1000 }} - Date.now();
-    function getMVT() {
-        return new Date(Date.now() + timeSkew + 5 * 3600 * 1000);
-    }
-    function applyServerDate(r) {
-        try { const d = r.headers.get('Date'); if (d) { const s = new Date(d).getTime(); if (!isNaN(s)) timeSkew = s - Date.now(); } } catch(e) {}
-    }
     function mvtDateString() {
         const d = getMVT();
         return d.getUTCFullYear() + '-' +
