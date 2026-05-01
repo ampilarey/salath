@@ -826,13 +826,10 @@
 
         function tick() {
             const mv  = getMVT();
-            const h24 = mv.getUTCHours();
-            const h12 = h24 % 12 || 12;
+            const h   = String(mv.getUTCHours()).padStart(2, '0');
             const m   = String(mv.getUTCMinutes()).padStart(2, '0');
             const s   = String(mv.getUTCSeconds()).padStart(2, '0');
-            const ap  = h24 >= 12 ? 'PM' : 'AM';
-            display.innerHTML = String(h12).padStart(2, '0') + ':' + m + ':' + s +
-                ' <span class="pt-clock-ampm">' + ap + '</span>';
+            display.innerHTML = h + ':' + m + ':' + s;
         }
 
         tick();
@@ -847,8 +844,13 @@
     // All time comparisons must use Maldives time (Indian/Maldives = UTC+5, no DST).
     // Using a fixed UTC+5 offset avoids relying on toLocaleString() parsing, which is
     // unreliable across browsers. getUTC* methods on the returned Date give MVT values.
+    // timeSkew syncs to server clock so device clock drift is ignored.
+    let timeSkew = {{ now()->timestamp * 1000 }} - Date.now();
     function getMVT() {
-        return new Date(Date.now() + 5 * 3600 * 1000);
+        return new Date(Date.now() + timeSkew + 5 * 3600 * 1000);
+    }
+    function applyServerDate(r) {
+        try { const d = r.headers.get('Date'); if (d) { const s = new Date(d).getTime(); if (!isNaN(s)) timeSkew = s - Date.now(); } } catch(e) {}
     }
     function mvtDateString() {
         const d = getMVT();
@@ -976,7 +978,7 @@
                             String(tmrwMV.getUTCMonth() + 1).padStart(2, '0') + '-' +
                             String(tmrwMV.getUTCDate()).padStart(2, '0');
                         fetch('/api/prayer-times?island_id=' + islandId + '&date=' + tmrwStr)
-                            .then(r => r.json())
+                            .then(r => { applyServerDate(r); return r.json(); })
                             .then(data => { window._tomorrowFajrTime = data?.prayers?.fajr ?? null; })
                             .catch(() => {});
                     }
