@@ -26,9 +26,24 @@
     })();
 
     /* All time comparisons must use Maldives time (UTC+5, no DST).
-     * Fixed offset avoids toLocaleString() parsing which is unreliable across browsers. */
+     * Optional server Date header skew correction when embedded cross-origin. */
+    let timeSkew = 0;
+
+    function syncClock(apiBase) {
+        const base = (apiBase || SCRIPT_ORIGIN).replace(/\/$/, '');
+        fetch(base + '/up', { method: 'HEAD' }).then(function (r) {
+            try {
+                const d = r.headers.get('Date');
+                if (d) {
+                    const s = new Date(d).getTime();
+                    if (!isNaN(s)) timeSkew = s - Date.now();
+                }
+            } catch { /* ignore */ }
+        }).catch(function () { /* ignore */ });
+    }
+
     function getMVT() {
-        return new Date(Date.now() + 5 * 3600 * 1000);
+        return new Date(Date.now() + timeSkew + 5 * 3600 * 1000);
     }
     function mvtDateString() {
         const d = getMVT();
@@ -114,6 +129,8 @@
         const apiBase  = (container.dataset.apiBase || SCRIPT_ORIGIN).replace(/\/$/, '');
         const theme    = container.dataset.theme === 'light' ? 'light' : 'dark';
         const lang     = container.dataset.lang  === 'en'    ? 'en'    : 'dv';
+
+        syncClock(apiBase);
 
         /* Ensure each widget instance has a unique ID to avoid DOM id collisions */
         if (!container.id) {
